@@ -9,11 +9,13 @@ const TravelmoryData = (() => {
                 JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
 
             // Keep older memories compatible with the new date range
-            return memories.map(memory => ({
-                ...memory,
-                startDate: memory.startDate || memory.visitDate || "",
-                endDate: memory.endDate || memory.visitDate || ""
-            }));
+           return memories.map(memory => ({
+    ...memory,
+    startDate: memory.startDate || memory.visitDate || "",
+    endDate: memory.endDate || memory.visitDate || "",
+    tripStatus: memory.tripStatus || "visited",
+    rating: memory.rating === "" ? null : memory.rating
+}));
 
         } catch (error) {
             console.error("Could not load memories:", error);
@@ -30,16 +32,19 @@ const TravelmoryData = (() => {
     function add(memory) {
         const memories = getAll();
 
-        const newMemory = {
-            id: crypto.randomUUID(),
-            country: memory.country,
-            city: memory.city,
-            startDate: memory.startDate,
-            endDate: memory.endDate,
-            rating: Number(memory.rating),
-            notes: memory.notes || "",
-            isFavorite: false
-        };
+const newMemory = {
+    id: crypto.randomUUID(),
+    country: memory.country,
+    city: memory.city,
+    startDate: memory.startDate,
+    endDate: memory.endDate,
+    tripStatus: memory.tripStatus || "visited",
+    rating: memory.rating === "" || memory.rating === null
+        ? null
+        : Number(memory.rating),
+    notes: memory.notes || "",
+    isFavorite: false
+};
 
         memories.push(newMemory);
         saveAll(memories);
