@@ -5,7 +5,16 @@ const TravelmoryData = (() => {
     // Load all saved memories
     function getAll() {
         try {
-            return JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+            const memories =
+                JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+
+            // Keep older memories compatible with the new date range
+            return memories.map(memory => ({
+                ...memory,
+                startDate: memory.startDate || memory.visitDate || "",
+                endDate: memory.endDate || memory.visitDate || ""
+            }));
+
         } catch (error) {
             console.error("Could not load memories:", error);
             return [];
@@ -25,7 +34,8 @@ const TravelmoryData = (() => {
             id: crypto.randomUUID(),
             country: memory.country,
             city: memory.city,
-            visitDate: memory.visitDate,
+            startDate: memory.startDate,
+            endDate: memory.endDate,
             rating: Number(memory.rating),
             notes: memory.notes || "",
             isFavorite: false
@@ -40,6 +50,7 @@ const TravelmoryData = (() => {
     // Delete a memory
     function remove(id) {
         const memories = getAll();
+
         const updatedMemories = memories.filter(
             memory => memory.id !== id
         );
