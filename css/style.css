@@ -759,3 +759,89 @@ section {
     }
 }
 
+
+/* ==========================================
+   COUNTRY & CITY AUTOCOMPLETE
+========================================== */
+
+.autocomplete-wrapper {
+    position: relative;
+    width: 100%;
+}
+
+.autocomplete-wrapper input {
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.autocomplete-wrapper input:disabled {
+    background: #efeee8;
+    color: #999;
+    cursor: not-allowed;
+}
+
+.autocomplete-suggestions {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    right: 0;
+    z-index: 1000;
+
+    max-height: 220px;
+    overflow-y: auto;
+
+    background: #ffffff;
+    border: 1px solid #e3e7df;
+    border-radius: 12px;
+
+    box-shadow: 0 8px 24px rgba(48, 59, 50, 0.12);
+
+    padding: 6px;
+}
+
+.autocomplete-suggestions[hidden] {
+    display: none !important;
+}
+
+.autocomplete-option {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+
+    padding: 10px 12px;
+
+    border: none;
+    border-radius: 8px;
+    background: transparent;
+
+    color: #303b32;
+    font-family: inherit;
+    font-size: 14px;
+    text-align: left;
+
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.autocomplete-option:hover,
+.autocomplete-option:focus {
+    background: #edf2eb;
+    outline: none;
+}
+
+.autocomplete-option strong {
+    font-weight: 600;
+}
+
+.autocomplete-option span {
+    margin-top: 2px;
+    color: #829083;
+    font-size: 12px;
+}
+
+.autocomplete-empty {
+    padding: 12px;
+    color: #829083;
+    font-size: 13px;
+    text-align: center;
+}
