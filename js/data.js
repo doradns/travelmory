@@ -32,6 +32,8 @@ const TravelmoryData = (() => {
     function add(memory) {
         const memories = getAll();
 
+console.log("STATUS RECEIVED BY DATA.JS:", memory.tripStatus);
+
 const newMemory = {
     id: crypto.randomUUID(),
     country: memory.country,
