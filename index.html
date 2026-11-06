@@ -24,7 +24,7 @@
             </nav>
 
             <button class="add-memory-button" id="addMemoryButton">
-                + Add a memory
+                + Add a Trip
             </button>
         </header>
 
@@ -154,8 +154,8 @@
         <dialog class="memory-dialog" id="memoryDialog">
             <div class="modal-header">
                 <div>
-                    <p class="eyebrow">SAVE A MOMENT</p>
-                    <h2>Add a memory</h2>
+                    <p class="eyebrow">PLAN YOUR NEXT ADVENTURE</p>
+                    <h2>Add a Trip</h2>
                 </div>
                 <button
                     type="button"
@@ -247,13 +247,14 @@
 </div>
 
                 <label for="rating">Your rating</label>
-                <select id="rating" name="rating">
-                    <option value="5">★★★★★ – Loved it</option>
-                    <option value="4">★★★★☆ – Great</option>
-                    <option value="3">★★★☆☆ – Good</option>
-                    <option value="2">★★☆☆☆ – Average</option>
-                    <option value="1">★☆☆☆☆ – Not for me</option>
-                </select>
+<select id="rating" name="rating">
+    <option value="">Not rated yet</option>
+    <option value="5">★★★★★ – Loved it</option>
+    <option value="4">★★★★☆ – Great</option>
+    <option value="3">★★★☆☆ – Good</option>
+    <option value="2">★★☆☆☆ – Average</option>
+    <option value="1">★☆☆☆☆ – Not for me</option>
+</select>
 
                 <label for="notes">Your memory</label>
                 <textarea
@@ -264,7 +265,7 @@
                 ></textarea>
 
                 <button type="submit" class="save-button">
-                    Save memory
+                    Save trip
                 </button>
             </form>
         </dialog>
