@@ -649,14 +649,17 @@ memoryForm.addEventListener("submit", (event) => {
         return;
     }
 
-    const newMemory = {
-        country: countryInput.value.trim(),
-        city: cityInput.value.trim(),
-        startDate: selectedStartDate,
-        endDate: selectedEndDate,
-        rating: Number(document.getElementById("rating").value),
-        notes: document.getElementById("notes").value.trim()
-    };
+const newMemory = {
+    country: countryInput.value.trim(),
+    city: cityInput.value.trim(),
+    startDate: selectedStartDate,
+    endDate: selectedEndDate,
+    tripStatus: document.getElementById("tripStatus").value,
+    rating: document.getElementById("rating").value === ""
+        ? null
+        : Number(document.getElementById("rating").value),
+    notes: document.getElementById("notes").value.trim()
+};
 
     TravelmoryData.add(newMemory);
 
