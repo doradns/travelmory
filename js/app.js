@@ -293,12 +293,352 @@ nextMonthButton.addEventListener("click", () => {
 
 
 // ==========================================
+// COUNTRY & CITY AUTOCOMPLETE
+// ==========================================
+
+const countryInput = document.getElementById("country");
+const countryCodeInput = document.getElementById("countryCode");
+const cityInput = document.getElementById("city");
+
+const countrySuggestions = document.getElementById("countrySuggestions");
+const citySuggestions = document.getElementById("citySuggestions");
+
+let selectedCountryCode = "";
+let selectedCityName = "";
+
+let countrySearchTimeout;
+let citySearchTimeout;
+
+const PHOTON_API = "https://photon.komoot.io/api/";
+
+
+// Fetch suggestions from Photon
+async function searchPhoton(params) {
+    const url = `${PHOTON_API}?${params.toString()}`;
+
+    const response = await fetch(url);
+
+    if (!response.ok) {
+        throw new Error("Could not load location suggestions.");
+    }
+
+    return response.json();
+}
+
+
+// Show a message inside a suggestion list
+function showSuggestionMessage(container, message) {
+    container.innerHTML = "";
+
+    const messageElement = document.createElement("div");
+    messageElement.className = "autocomplete-empty";
+    messageElement.textContent = message;
+
+    container.appendChild(messageElement);
+    container.hidden = false;
+}
+
+
+// Hide suggestion lists
+function hideAutocompleteSuggestions() {
+    countrySuggestions.hidden = true;
+    citySuggestions.hidden = true;
+}
+
+
+// ==========================================
+// COUNTRY SEARCH
+// ==========================================
+
+async function searchCountries(query) {
+    const params = new URLSearchParams();
+
+    params.set("q", query);
+    params.set("limit", "10");
+    params.set("lang", "en");
+    params.append("layer", "country");
+
+    try {
+        const data = await searchPhoton(params);
+
+        // Ignore outdated results if the user has typed more
+        if (countryInput.value.trim() !== query) return;
+
+        const countries = new Map();
+
+        data.features.forEach(feature => {
+            const properties = feature.properties;
+            const name = properties.name;
+            const code = properties.countrycode;
+
+            if (name && code && !countries.has(code)) {
+                countries.set(code, {
+                    name,
+                    code
+                });
+            }
+        });
+
+        countrySuggestions.innerHTML = "";
+
+        if (countries.size === 0) {
+            showSuggestionMessage(
+                countrySuggestions,
+                "No countries found."
+            );
+            return;
+        }
+
+        countries.forEach(country => {
+            const button = document.createElement("button");
+
+            button.type = "button";
+            button.className = "autocomplete-option";
+
+            const name = document.createElement("strong");
+            name.textContent = country.name;
+
+            const code = document.createElement("span");
+            code.textContent = country.code;
+
+            button.appendChild(name);
+            button.appendChild(code);
+
+            button.addEventListener("click", () => {
+                selectCountry(country);
+            });
+
+            countrySuggestions.appendChild(button);
+        });
+
+        countrySuggestions.hidden = false;
+
+    } catch (error) {
+        console.error("Country search failed:", error);
+
+        showSuggestionMessage(
+            countrySuggestions,
+            "Could not load countries. Please try again."
+        );
+    }
+}
+
+
+function selectCountry(country) {
+    countryInput.value = country.name;
+    countryCodeInput.value = country.code;
+
+    selectedCountryCode = country.code;
+
+    countrySuggestions.hidden = true;
+
+    // Reset city whenever the country changes
+    cityInput.value = "";
+    selectedCityName = "";
+
+    cityInput.disabled = false;
+    cityInput.placeholder = "Search for a city...";
+
+    citySuggestions.hidden = true;
+
+    cityInput.focus();
+}
+
+
+countryInput.addEventListener("input", () => {
+    // Typing means the previous country selection is no longer valid
+    selectedCountryCode = "";
+    countryCodeInput.value = "";
+
+    selectedCityName = "";
+
+    cityInput.value = "";
+    cityInput.disabled = true;
+    cityInput.placeholder = "Select a country first";
+
+    citySuggestions.hidden = true;
+
+    clearTimeout(countrySearchTimeout);
+
+    const query = countryInput.value.trim();
+
+    if (query.length < 2) {
+        countrySuggestions.hidden = true;
+        return;
+    }
+
+    countrySearchTimeout = setTimeout(() => {
+        searchCountries(query);
+    }, 350);
+});
+
+
+// ==========================================
+// CITY SEARCH
+// ==========================================
+
+async function searchCities(query) {
+    if (!selectedCountryCode) return;
+
+    const countryCode = selectedCountryCode;
+
+    const params = new URLSearchParams();
+
+    params.set("q", query);
+    params.set("countrycode", countryCode);
+    params.set("limit", "10");
+    params.set("lang", "en");
+
+    params.append("layer", "city");
+    params.append("layer", "locality");
+
+    try {
+        const data = await searchPhoton(params);
+
+        // Ignore outdated results or a changed country
+        if (
+            cityInput.value.trim() !== query ||
+            selectedCountryCode !== countryCode
+        ) {
+            return;
+        }
+
+        // Keep only results belonging to the selected country
+        const cities = new Map();
+
+        data.features.forEach(feature => {
+            const properties = feature.properties;
+
+            const name = properties.name;
+            const resultCountryCode =
+                properties.countrycode?.toUpperCase();
+
+            if (
+                name &&
+                resultCountryCode === countryCode.toUpperCase()
+            ) {
+                const state = properties.state || properties.county || "";
+
+                const key = `${name}-${state}`;
+
+                if (!cities.has(key)) {
+                    cities.set(key, {
+                        name,
+                        state
+                    });
+                }
+            }
+        });
+
+        citySuggestions.innerHTML = "";
+
+        if (cities.size === 0) {
+            showSuggestionMessage(
+                citySuggestions,
+                "No cities found in this country."
+            );
+            return;
+        }
+
+        cities.forEach(city => {
+            const button = document.createElement("button");
+
+            button.type = "button";
+            button.className = "autocomplete-option";
+
+            const name = document.createElement("strong");
+            name.textContent = city.name;
+
+            button.appendChild(name);
+
+            if (city.state) {
+                const location = document.createElement("span");
+                location.textContent = city.state;
+
+                button.appendChild(location);
+            }
+
+            button.addEventListener("click", () => {
+                selectCity(city);
+            });
+
+            citySuggestions.appendChild(button);
+        });
+
+        citySuggestions.hidden = false;
+
+    } catch (error) {
+        console.error("City search failed:", error);
+
+        showSuggestionMessage(
+            citySuggestions,
+            "Could not load cities. Please try again."
+        );
+    }
+}
+
+
+function selectCity(city) {
+    cityInput.value = city.name;
+    selectedCityName = city.name;
+
+    citySuggestions.hidden = true;
+}
+
+
+cityInput.addEventListener("input", () => {
+    selectedCityName = "";
+
+    clearTimeout(citySearchTimeout);
+
+    const query = cityInput.value.trim();
+
+    if (!selectedCountryCode || query.length < 2) {
+        citySuggestions.hidden = true;
+        return;
+    }
+
+    citySearchTimeout = setTimeout(() => {
+        searchCities(query);
+    }, 350);
+});
+
+
+// ==========================================
+// CLOSE SUGGESTIONS WHEN CLICKING OUTSIDE
+// ==========================================
+
+document.addEventListener("click", event => {
+    if (!event.target.closest(".autocomplete-wrapper")) {
+        hideAutocompleteSuggestions();
+    }
+});
+
+
+
+// ==========================================
 // SAVE MEMORY
 // ==========================================
 
 memoryForm.addEventListener("submit", (event) => {
     event.preventDefault();
 
+    // Make sure a country was selected from the suggestions
+    if (!selectedCountryCode) {
+        countryInput.focus();
+        return;
+    }
+
+    // Make sure a city was selected from the suggestions
+    if (
+        !selectedCityName ||
+        cityInput.value.trim() !== selectedCityName
+    ) {
+        cityInput.focus();
+        return;
+    }
+
+    // Make sure both travel dates are selected
     if (!selectedStartDate || !selectedEndDate) {
         dateRangeHint.textContent =
             "Please select both your arrival and departure dates.";
@@ -310,8 +650,8 @@ memoryForm.addEventListener("submit", (event) => {
     }
 
     const newMemory = {
-        country: document.getElementById("country").value.trim(),
-        city: document.getElementById("city").value.trim(),
+        country: countryInput.value.trim(),
+        city: cityInput.value.trim(),
         startDate: selectedStartDate,
         endDate: selectedEndDate,
         rating: Number(document.getElementById("rating").value),
@@ -322,6 +662,18 @@ memoryForm.addEventListener("submit", (event) => {
 
     memoryForm.reset();
 
+    // Reset country and city selection
+    selectedCountryCode = "";
+    selectedCityName = "";
+
+    countryCodeInput.value = "";
+
+    cityInput.disabled = true;
+    cityInput.placeholder = "Select a country first";
+
+    hideAutocompleteSuggestions();
+
+    // Reset date selection
     selectedStartDate = "";
     selectedEndDate = "";
 
@@ -336,6 +688,7 @@ memoryForm.addEventListener("submit", (event) => {
 
     renderDashboard();
 });
+
 
 
 // ==========================================
