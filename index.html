@@ -166,11 +166,50 @@
             </div>
 
             <form id="memoryForm">
-                <label for="country">Country</label>
-                <input type="text" id="country" name="country" required>
 
-                <label for="city">City</label>
-                <input type="text" id="city" name="city" required>
+<!-- Country autocomplete -->
+<div class="form-group autocomplete-wrapper">
+    <label for="country">Country</label>
+
+    <input
+        type="text"
+        id="country"
+        name="country"
+        placeholder="Search for a country..."
+        autocomplete="off"
+        required
+    >
+
+    <input type="hidden" id="countryCode">
+
+    <div
+        id="countrySuggestions"
+        class="autocomplete-suggestions"
+        hidden
+    ></div>
+</div>
+
+<!-- City autocomplete -->
+<div class="form-group autocomplete-wrapper">
+    <label for="city">City</label>
+
+    <input
+        type="text"
+        id="city"
+        name="city"
+        placeholder="Select a country first"
+        autocomplete="off"
+        required
+        disabled
+    >
+
+    <div
+        id="citySuggestions"
+        class="autocomplete-suggestions"
+        hidden
+    ></div>
+</div>
+
 
 <label>When did you travel?</label>
 
