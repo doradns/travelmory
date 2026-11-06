@@ -1,12 +1,12 @@
 
-// ===================================
+// ========================================
 // TRAVELMORY — MAIN APPLICATION
-// ===================================
+// ========================================
 
 // HTML elements
-const addButton = document.getElementById("addMemoryButton");
-const dialog = document.getElementById("memoryDialog");
-const closeButton = document.getElementById("closeDialog");
+const addMemoryButton = document.getElementById("addMemoryButton");
+const memoryDialog = document.getElementById("memoryDialog");
+const closeDialog = document.getElementById("closeDialog");
 const memoryForm = document.getElementById("memoryForm");
 
 const countriesCount = document.getElementById("countriesCount");
@@ -15,253 +15,364 @@ const memoriesCount = document.getElementById("memoriesCount");
 
 const recentGrid = document.getElementById("recentGrid");
 const countryList = document.getElementById("countryList");
+const favoritesGrid = document.getElementById("favoritesGrid");
+
+const searchInput = document.getElementById("searchInput");
+const featuredDestination = document.getElementById("featuredDestination");
 
 
-// ===================================
-// OPEN AND CLOSE FORM
-// ===================================
+// ========================================
+// DIALOG — OPEN AND CLOSE
+// ========================================
 
-addButton.addEventListener("click", () => {
-    dialog.showModal();
+addMemoryButton.addEventListener("click", () => {
+    memoryDialog.showModal();
 });
 
-closeButton.addEventListener("click", () => {
-    dialog.close();
-});
-
-dialog.addEventListener("click", (event) => {
-    if (event.target === dialog) {
-        dialog.close();
-    }
+closeDialog.addEventListener("click", () => {
+    memoryDialog.close();
 });
 
 
-// ===================================
-// ADD NEW MEMORY
-// ===================================
+// ========================================
+// ADD A NEW MEMORY
+// ========================================
 
 memoryForm.addEventListener("submit", (event) => {
-
     event.preventDefault();
 
     const newMemory = {
-        country: document.getElementById("countryInput").value.trim(),
-        city: document.getElementById("cityInput").value.trim(),
-        date: document.getElementById("dateInput").value,
-        rating: Number(document.getElementById("ratingInput").value),
-        notes: document.getElementById("memoryInput").value.trim()
+        country: document.getElementById("country").value.trim(),
+        city: document.getElementById("city").value.trim(),
+        visitDate: document.getElementById("visitDate").value,
+        rating: document.getElementById("rating").value,
+        notes: document.getElementById("notes").value.trim()
     };
 
     TravelmoryData.add(newMemory);
 
     memoryForm.reset();
-    dialog.close();
+    memoryDialog.close();
 
     renderDashboard();
-
 });
 
 
-// ===================================
+// ========================================
 // HELPER FUNCTIONS
-// ===================================
+// ========================================
 
+// Prevent HTML from being interpreted as code
 function escapeHTML(value) {
-
-    return String(value).replace(/[&<>"']/g, (character) => {
-
+    return String(value).replace(/[&<>"']/g, character => {
         const entities = {
             "&": "&amp;",
             "<": "&lt;",
             ">": "&gt;",
             '"': "&quot;",
-            "'": "&#39;"
+            "'": "&#039;"
         };
 
         return entities[character];
-
     });
-
 }
 
-
+// Format dates in a readable way
 function formatDate(dateString) {
+    if (!dateString) return "Date not specified";
 
-    if (!dateString) return "";
+    const date = new Date(dateString + "T00:00:00");
 
-    return new Date(dateString + "T12:00:00").toLocaleDateString(
-        "en-GB",
-        {
-            month: "long",
-            year: "numeric"
-        }
+    return date.toLocaleDateString("en-GB", {
+        day: "numeric",
+        month: "short",
+        year: "numeric"
+    });
+}
+
+// Sort memories from newest to oldest
+function sortMemories(memories) {
+    return [...memories].sort((a, b) =>
+        b.visitDate.localeCompare(a.visitDate)
     );
+}
 
+// Get the number of unique cities
+function getUniqueCities(memories) {
+    return new Set(
+        memories.map(memory =>
+            `${memory.country.toLowerCase()}|${memory.city.toLowerCase()}`
+        )
+    );
 }
 
 
-// ===================================
-// UPDATE STATISTICS
-// ===================================
+// ========================================
+// STATISTICS
+// ========================================
 
 function renderStatistics(memories) {
-
-    const countries = new Set(
+    const uniqueCountries = new Set(
         memories.map(memory => memory.country.toLowerCase())
     );
 
-    const cities = new Set(
-        memories.map(memory =>
-            `${memory.country.toLowerCase()}-${memory.city.toLowerCase()}`
-        )
-    );
+    const uniqueCities = getUniqueCities(memories);
 
-    countriesCount.textContent = countries.size;
-    citiesCount.textContent = cities.size;
+    countriesCount.textContent = uniqueCountries.size;
+    citiesCount.textContent = uniqueCities.size;
     memoriesCount.textContent = memories.length;
-
 }
 
 
-// ===================================
+// ========================================
 // RECENTLY VISITED
-// ===================================
+// ========================================
 
 function renderRecentMemories(memories) {
+    const recentMemories = sortMemories(memories).slice(0, 6);
 
-    const sortedMemories = [...memories].sort(
-        (a, b) => new Date(b.date) - new Date(a.date)
-    );
-
-    recentGrid.innerHTML = "";
-
-    if (sortedMemories.length === 0) {
-
+    if (recentMemories.length === 0) {
         recentGrid.innerHTML = `
-            <p class="empty-state">
-                Your travel story starts here. Add your first memory!
-            </p>
+            <div class="empty-state">
+                <p>No travel memories yet.</p>
+                <p>Start your collection by adding your first memory!</p>
+            </div>
         `;
-
         return;
     }
 
-    sortedMemories.slice(0, 4).forEach(memory => {
+    recentGrid.innerHTML = recentMemories.map(memory => `
+        <article class="destination-card">
+            <div class="destination-image"></div>
 
-        const card = document.createElement("article");
-        card.className = "destination-card";
-
-        card.innerHTML = `
-            <div class="destination-image memory-placeholder">
-                <span>✈</span>
-            </div>
-
-            <div class="destination-info">
-
+            <div class="destination-content">
+                <h3>${escapeHTML(memory.city)}</h3>
                 <p>${escapeHTML(memory.country)}</p>
 
-                <h3>${escapeHTML(memory.city)}</h3>
-
-                <span>${formatDate(memory.date)}</span>
-
-                <div class="memory-rating">
-                    ${"★".repeat(memory.rating)}${"☆".repeat(5 - memory.rating)}
+                <div class="destination-meta">
+                    <span>${formatDate(memory.visitDate)}</span>
+                    <span>${"★".repeat(memory.rating)}${"☆".repeat(5 - memory.rating)}</span>
                 </div>
 
-                ${
-                    memory.notes
-                        ? `<p class="memory-notes">${escapeHTML(memory.notes)}</p>`
-                        : ""
-                }
+                ${memory.notes ? `
+                    <p class="memory-notes">
+                        ${escapeHTML(memory.notes)}
+                    </p>
+                ` : ""}
 
+                <div class="memory-actions">
+                    <button
+                        type="button"
+                        data-action="favorite"
+                        data-id="${escapeHTML(memory.id)}"
+                        aria-label="${memory.isFavorite ? "Remove from favorites" : "Add to favorites"}"
+                    >
+                        ${memory.isFavorite ? "♥ Favorited" : "♡ Add to favorites"}
+                    </button>
+
+                    <button
+                        type="button"
+                        data-action="delete"
+                        data-id="${escapeHTML(memory.id)}"
+                        aria-label="Delete memory"
+                    >
+                        Delete
+                    </button>
+                </div>
             </div>
-        `;
-
-        recentGrid.appendChild(card);
-
-    });
-
+        </article>
+    `).join("");
 }
 
 
-// ===================================
-// MY COUNTRIES
-// ===================================
+// ========================================
+// COUNTRY COLLECTION
+// ========================================
 
 function renderCountries(memories) {
-
-    countryList.innerHTML = "";
-
     const countries = {};
 
     memories.forEach(memory => {
+        const countryName = memory.country;
 
-        const key = memory.country.toLowerCase();
-
-        if (!countries[key]) {
-
-            countries[key] = {
-                name: memory.country,
-                cities: new Set()
-            };
-
+        if (!countries[countryName]) {
+            countries[countryName] = new Set();
         }
 
-        countries[key].cities.add(memory.city.toLowerCase());
-
+        countries[countryName].add(memory.city);
     });
 
-    const countryEntries = Object.values(countries);
+    const countryNames = Object.keys(countries).sort();
 
-    if (countryEntries.length === 0) {
-
+    if (countryNames.length === 0) {
         countryList.innerHTML = `
-            <p class="empty-state">
-                Your country collection is waiting for its first destination.
-            </p>
+            <div class="empty-state">
+                Your country collection will appear here.
+            </div>
         `;
+        return;
+    }
+
+    countryList.innerHTML = countryNames.map(country => `
+        <article class="country-item">
+            <h3>${escapeHTML(country)}</h3>
+            <p>
+                ${countries[country].size}
+                ${countries[country].size === 1 ? "city" : "cities"} explored
+            </p>
+        </article>
+    `).join("");
+}
+
+
+// ========================================
+// FAVORITE DESTINATIONS
+// ========================================
+
+function renderFavorites(memories) {
+    const favorites = sortMemories(
+        memories.filter(memory => memory.isFavorite)
+    );
+
+    if (favorites.length === 0) {
+        favoritesGrid.innerHTML = `
+            <div class="empty-state">
+                Your favorite places will appear here.
+                <br>
+                Use the heart button on a travel memory to add one.
+            </div>
+        `;
+        return;
+    }
+
+    favoritesGrid.innerHTML = favorites.map(memory => `
+        <article class="favorite-card">
+            <h3>♥ ${escapeHTML(memory.city)}</h3>
+            <p>${escapeHTML(memory.country)}</p>
+            <p>${formatDate(memory.visitDate)}</p>
+
+            <button
+                type="button"
+                data-action="favorite"
+                data-id="${escapeHTML(memory.id)}"
+            >
+                Remove from favorites
+            </button>
+        </article>
+    `).join("");
+}
+
+
+// ========================================
+// FEATURED DESTINATION
+// ========================================
+
+function renderFeaturedDestination(memories) {
+    const latestMemory = sortMemories(memories)[0];
+
+    if (!latestMemory) {
+        featuredDestination.querySelector(".featured-location").textContent =
+            "YOUR NEXT MEMORY";
+
+        featuredDestination.querySelector("h3").textContent =
+            "Every place has a story.";
+
+        featuredDestination.querySelector(
+            ".featured-content > p:last-child"
+        ).textContent =
+            "Add your first travel memory and let your collection grow.";
 
         return;
     }
 
-    countryEntries.forEach(country => {
+    featuredDestination.querySelector(".featured-location").textContent =
+        latestMemory.country.toUpperCase();
 
-        const item = document.createElement("div");
-        item.className = "country-item";
+    featuredDestination.querySelector("h3").textContent =
+        latestMemory.city;
 
-        const cityCount = country.cities.size;
-
-        item.innerHTML = `
-            <span>🌍</span>
-
-            <div>
-                <h3>${escapeHTML(country.name)}</h3>
-                <p>${cityCount} ${cityCount === 1 ? "city" : "cities"} explored</p>
-            </div>
-        `;
-
-        countryList.appendChild(item);
-
-    });
-
+    featuredDestination.querySelector(
+        ".featured-content > p:last-child"
+    ).textContent =
+        latestMemory.notes || `Your visit on ${formatDate(latestMemory.visitDate)}.`;
 }
 
 
-// ===================================
-// RENDER DASHBOARD
-// ===================================
+// ========================================
+// SEARCH
+// ========================================
+
+function renderSearchResults() {
+    const allMemories = TravelmoryData.getAll();
+    const searchTerm = searchInput.value.trim().toLowerCase();
+
+    const filteredMemories = allMemories.filter(memory =>
+        memory.city.toLowerCase().includes(searchTerm) ||
+        memory.country.toLowerCase().includes(searchTerm) ||
+        memory.notes.toLowerCase().includes(searchTerm)
+    );
+
+    renderRecentMemories(filteredMemories);
+}
+
+
+// ========================================
+// FAVORITE AND DELETE ACTIONS
+// ========================================
+
+document.addEventListener("click", (event) => {
+    const button = event.target.closest("[data-action]");
+
+    if (!button) return;
+
+    const memoryId = button.dataset.id;
+    const action = button.dataset.action;
+
+    if (action === "favorite") {
+        const memory = TravelmoryData.getAll().find(
+            item => item.id === memoryId
+        );
+
+        if (!memory) return;
+
+        TravelmoryData.update(memoryId, {
+            isFavorite: !memory.isFavorite
+        });
+
+        renderDashboard();
+    }
+
+    if (action === "delete") {
+        const confirmed = window.confirm(
+            "Are you sure you want to delete this memory?"
+        );
+
+        if (!confirmed) return;
+
+        TravelmoryData.remove(memoryId);
+        renderDashboard();
+    }
+});
+
+
+// ========================================
+// DASHBOARD
+// ========================================
 
 function renderDashboard() {
-
     const memories = TravelmoryData.getAll();
 
     renderStatistics(memories);
-    renderRecentMemories(memories);
+    renderFeaturedDestination(memories);
+    renderSearchResults();
     renderCountries(memories);
-
+    renderFavorites(memories);
 }
 
 
-// Load saved data when the page opens
-renderDashboard();
+// Search updates the recent memories as you type
+searchInput.addEventListener("input", renderSearchResults);
 
+
+// Initial dashboard render
+renderDashboard();
