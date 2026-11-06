@@ -1,9 +1,9 @@
 
-// ========================================
-// TRAVELMORY — MAIN APPLICATION
-// ========================================
+// ==========================================
+// TRAVELMORY — APP
+// ==========================================
 
-// HTML elements
+// DOM elements
 const addMemoryButton = document.getElementById("addMemoryButton");
 const memoryDialog = document.getElementById("memoryDialog");
 const closeDialog = document.getElementById("closeDialog");
@@ -20,10 +20,22 @@ const favoritesGrid = document.getElementById("favoritesGrid");
 const searchInput = document.getElementById("searchInput");
 const featuredDestination = document.getElementById("featuredDestination");
 
+// Date range calendar elements
+const dateRangeTrigger = document.getElementById("dateRangeTrigger");
+const dateRangeCalendar = document.getElementById("dateRangeCalendar");
+const dateRangeLabel = document.getElementById("dateRangeLabel");
+const calendarMonths = document.getElementById("calendarMonths");
+const prevMonthButton = document.getElementById("prevMonth");
+const nextMonthButton = document.getElementById("nextMonth");
+const dateRangeHint = document.getElementById("dateRangeHint");
 
-// ========================================
-// DIALOG — OPEN AND CLOSE
-// ========================================
+const startDateInput = document.getElementById("startDate");
+const endDateInput = document.getElementById("endDate");
+
+
+// ==========================================
+// DIALOG
+// ==========================================
 
 addMemoryButton.addEventListener("click", () => {
     memoryDialog.showModal();
@@ -34,17 +46,274 @@ closeDialog.addEventListener("click", () => {
 });
 
 
-// ========================================
-// ADD A NEW MEMORY
-// ========================================
+// ==========================================
+// DATE RANGE CALENDAR
+// ==========================================
+
+let calendarDate = new Date();
+calendarDate.setDate(1);
+
+let selectedStartDate = "";
+let selectedEndDate = "";
+
+const monthFormatter = new Intl.DateTimeFormat("en-GB", {
+    month: "long",
+    year: "numeric"
+});
+
+function dateToString(date) {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+
+    return `${year}-${month}-${day}`;
+}
+
+function parseDate(dateString) {
+    if (!dateString) return null;
+
+    const [year, month, day] = dateString.split("-").map(Number);
+
+    return new Date(year, month - 1, day);
+}
+
+function formatDate(dateString) {
+    const date = parseDate(dateString);
+
+    if (!date) return "Date not specified";
+
+    return date.toLocaleDateString("en-GB", {
+        day: "numeric",
+        month: "short",
+        year: "numeric"
+    });
+}
+
+function formatDateRange(memory) {
+    const start = memory.startDate || memory.visitDate || "";
+    const end = memory.endDate || memory.visitDate || start;
+
+    if (!start) return "Date not specified";
+
+    if (!end || start === end) {
+        return formatDate(start);
+    }
+
+    const startDate = parseDate(start);
+    const endDate = parseDate(end);
+
+    if (
+        startDate.getMonth() === endDate.getMonth() &&
+        startDate.getFullYear() === endDate.getFullYear()
+    ) {
+        const monthYear = endDate.toLocaleDateString("en-GB", {
+            month: "short",
+            year: "numeric"
+        });
+
+        return `${startDate.getDate()}–${endDate.getDate()} ${monthYear}`;
+    }
+
+    return `${formatDate(start)} – ${formatDate(end)}`;
+}
+
+function updateDateRangeLabel() {
+    if (!selectedStartDate) {
+        dateRangeLabel.textContent = "Select travel dates";
+        startDateInput.value = "";
+        endDateInput.value = "";
+        return;
+    }
+
+    startDateInput.value = selectedStartDate;
+    endDateInput.value = selectedEndDate;
+
+    if (!selectedEndDate) {
+        dateRangeLabel.textContent =
+            `${formatDate(selectedStartDate)} – Select end date`;
+        return;
+    }
+
+    dateRangeLabel.textContent =
+        `${formatDate(selectedStartDate)} – ${formatDate(selectedEndDate)}`;
+}
+
+function renderCalendarMonth(year, month) {
+    const firstDay = new Date(year, month, 1);
+    const lastDay = new Date(year, month + 1, 0);
+
+    const monthContainer = document.createElement("div");
+    monthContainer.className = "calendar-month";
+
+    const heading = document.createElement("h3");
+    heading.textContent = monthFormatter.format(firstDay);
+    monthContainer.appendChild(heading);
+
+    const weekdays = document.createElement("div");
+    weekdays.className = "calendar-weekdays";
+
+    ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].forEach(day => {
+        const dayElement = document.createElement("span");
+        dayElement.textContent = day;
+        weekdays.appendChild(dayElement);
+    });
+
+    monthContainer.appendChild(weekdays);
+
+    const daysContainer = document.createElement("div");
+    daysContainer.className = "calendar-days";
+
+    // Monday = 0, Sunday = 6
+    const startingDay = (firstDay.getDay() + 6) % 7;
+
+    for (let i = 0; i < startingDay; i++) {
+        const emptyDay = document.createElement("span");
+        emptyDay.className = "calendar-day empty";
+        daysContainer.appendChild(emptyDay);
+    }
+
+    for (let day = 1; day <= lastDay.getDate(); day++) {
+        const date = new Date(year, month, day);
+        const dateString = dateToString(date);
+
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "calendar-day";
+        button.textContent = day;
+        button.dataset.date = dateString;
+
+        if (dateString === selectedStartDate) {
+            button.classList.add("selected", "range-start");
+        }
+
+        if (dateString === selectedEndDate) {
+            button.classList.add("selected", "range-end");
+        }
+
+        if (
+            selectedStartDate &&
+            selectedEndDate &&
+            dateString > selectedStartDate &&
+            dateString < selectedEndDate
+        ) {
+            button.classList.add("in-range");
+        }
+
+        button.addEventListener("click", () => {
+            selectCalendarDate(dateString);
+        });
+
+        daysContainer.appendChild(button);
+    }
+
+    monthContainer.appendChild(daysContainer);
+
+    return monthContainer;
+}
+
+function renderCalendar() {
+    calendarMonths.innerHTML = "";
+
+    const firstMonth = new Date(
+        calendarDate.getFullYear(),
+        calendarDate.getMonth(),
+        1
+    );
+
+    const secondMonth = new Date(
+        calendarDate.getFullYear(),
+        calendarDate.getMonth() + 1,
+        1
+    );
+
+    calendarMonths.appendChild(
+        renderCalendarMonth(
+            firstMonth.getFullYear(),
+            firstMonth.getMonth()
+        )
+    );
+
+    calendarMonths.appendChild(
+        renderCalendarMonth(
+            secondMonth.getFullYear(),
+            secondMonth.getMonth()
+        )
+    );
+}
+
+function selectCalendarDate(dateString) {
+    // Start a new selection
+    if (!selectedStartDate || selectedEndDate) {
+        selectedStartDate = dateString;
+        selectedEndDate = "";
+        dateRangeHint.textContent =
+            "Now select your departure date.";
+    }
+
+    // If the second date is earlier, use it as the new start
+    else if (dateString < selectedStartDate) {
+        selectedStartDate = dateString;
+        selectedEndDate = "";
+        dateRangeHint.textContent =
+            "Now select your departure date.";
+    }
+
+    // Complete the date range
+    else {
+        selectedEndDate = dateString;
+        dateRangeHint.textContent = "Your travel dates are selected.";
+    }
+
+    updateDateRangeLabel();
+    renderCalendar();
+
+    // Close the calendar after both dates have been selected
+    if (selectedStartDate && selectedEndDate) {
+        dateRangeCalendar.hidden = true;
+    }
+}
+
+dateRangeTrigger.addEventListener("click", () => {
+    dateRangeCalendar.hidden = !dateRangeCalendar.hidden;
+
+    if (!dateRangeCalendar.hidden) {
+        renderCalendar();
+    }
+});
+
+prevMonthButton.addEventListener("click", () => {
+    calendarDate.setMonth(calendarDate.getMonth() - 1);
+    renderCalendar();
+});
+
+nextMonthButton.addEventListener("click", () => {
+    calendarDate.setMonth(calendarDate.getMonth() + 1);
+    renderCalendar();
+});
+
+
+// ==========================================
+// SAVE MEMORY
+// ==========================================
 
 memoryForm.addEventListener("submit", (event) => {
     event.preventDefault();
 
+    if (!selectedStartDate || !selectedEndDate) {
+        dateRangeHint.textContent =
+            "Please select both your arrival and departure dates.";
+
+        dateRangeCalendar.hidden = false;
+        renderCalendar();
+
+        return;
+    }
+
     const newMemory = {
         country: document.getElementById("country").value.trim(),
         city: document.getElementById("city").value.trim(),
-        visitDate: document.getElementById("visitDate").value,
+        startDate: selectedStartDate,
+        endDate: selectedEndDate,
         rating: Number(document.getElementById("rating").value),
         notes: document.getElementById("notes").value.trim()
     };
@@ -52,19 +321,29 @@ memoryForm.addEventListener("submit", (event) => {
     TravelmoryData.add(newMemory);
 
     memoryForm.reset();
+
+    selectedStartDate = "";
+    selectedEndDate = "";
+
+    updateDateRangeLabel();
+
+    dateRangeHint.textContent =
+        "Select your arrival and departure dates.";
+
+    dateRangeCalendar.hidden = true;
+
     memoryDialog.close();
 
     renderDashboard();
 });
 
 
-// ========================================
+// ==========================================
 // HELPER FUNCTIONS
-// ========================================
+// ==========================================
 
-// Prevent HTML from being interpreted as code
 function escapeHTML(value) {
-    return String(value).replace(/[&<>"']/g, character => {
+    return String(value || "").replace(/[&<>"']/g, character => {
         const entities = {
             "&": "&amp;",
             "<": "&lt;",
@@ -77,97 +356,71 @@ function escapeHTML(value) {
     });
 }
 
-// Format dates in a readable way
-function formatDate(dateString) {
-    if (!dateString) return "Date not specified";
+function sortMemories(memories) {
+    return [...memories].sort((a, b) => {
+        const dateA = a.startDate || a.visitDate || "";
+        const dateB = b.startDate || b.visitDate || "";
 
-    const date = new Date(dateString + "T00:00:00");
-
-    return date.toLocaleDateString("en-GB", {
-        day: "numeric",
-        month: "short",
-        year: "numeric"
+        return dateB.localeCompare(dateA);
     });
 }
 
-// Sort memories from newest to oldest
-function sortMemories(memories) {
-    return [...memories].sort((a, b) =>
-        b.visitDate.localeCompare(a.visitDate)
-    );
-}
-
-// Get the number of unique cities
 function getUniqueCities(memories) {
-    return new Set(
-        memories.map(memory =>
-            `${memory.country.toLowerCase()}|${memory.city.toLowerCase()}`
-        )
-    );
+    return new Set(memories.map(memory => memory.city));
 }
 
 
-// ========================================
+// ==========================================
 // STATISTICS
-// ========================================
+// ==========================================
 
 function renderStatistics(memories) {
-    const uniqueCountries = new Set(
-        memories.map(memory => memory.country.toLowerCase())
+    const countries = new Set(
+        memories.map(memory => memory.country)
     );
 
-    const uniqueCities = getUniqueCities(memories);
+    const cities = getUniqueCities(memories);
 
-    countriesCount.textContent = uniqueCountries.size;
-    citiesCount.textContent = uniqueCities.size;
+    countriesCount.textContent = countries.size;
+    citiesCount.textContent = cities.size;
     memoriesCount.textContent = memories.length;
 }
 
 
-// ========================================
-// RECENTLY VISITED
-// ========================================
+// ==========================================
+// RECENT MEMORIES
+// ==========================================
 
 function renderRecentMemories(memories) {
-    const recentMemories = sortMemories(memories).slice(0, 6);
+    const sortedMemories = sortMemories(memories).slice(0, 6);
 
-    if (recentMemories.length === 0) {
-        recentGrid.innerHTML = `
-            <div class="empty-state">
-                <p>No travel memories yet.</p>
-                <p>Start your collection by adding your first memory!</p>
-            </div>
-        `;
+    if (sortedMemories.length === 0) {
+        recentGrid.innerHTML =
+            "<p class='empty-state'>Your travel memories will appear here.</p>";
         return;
     }
 
-    recentGrid.innerHTML = recentMemories.map(memory => `
-        <article class="destination-card">
-            <div class="destination-image"></div>
-
-            <div class="destination-content">
+    recentGrid.innerHTML = sortedMemories.map(memory => `
+        <article class="memory-card">
+            <div class="memory-card-content">
                 <h3>${escapeHTML(memory.city)}</h3>
                 <p>${escapeHTML(memory.country)}</p>
+                <span>${escapeHTML(formatDateRange(memory))}</span>
 
-                <div class="destination-meta">
-                    <span>${formatDate(memory.visitDate)}</span>
-                    <span>${"★".repeat(memory.rating)}${"☆".repeat(5 - memory.rating)}</span>
+                <div class="memory-rating">
+                    ${"★".repeat(Number(memory.rating) || 0)}
                 </div>
 
-                ${memory.notes ? `
-                    <p class="memory-notes">
-                        ${escapeHTML(memory.notes)}
-                    </p>
-                ` : ""}
+                <p>${escapeHTML(memory.notes)}</p>
 
                 <div class="memory-actions">
                     <button
                         type="button"
                         data-action="favorite"
                         data-id="${escapeHTML(memory.id)}"
-                        aria-label="${memory.isFavorite ? "Remove from favorites" : "Add to favorites"}"
+                        aria-label="Toggle favorite"
                     >
-                        ${memory.isFavorite ? "♥ Favorited" : "♡ Add to favorites"}
+                        ${memory.isFavorite ? "♥" : "♡"}
                     </button>
 
                     <button
@@ -176,7 +429,7 @@ function renderRecentMemories(memories) {
                         data-id="${escapeHTML(memory.id)}"
                         aria-label="Delete memory"
                     >
-                        Delete
+                        ×
                     </button>
                 </div>
             </div>
@@ -185,49 +438,45 @@ function renderRecentMemories(memories) {
 }
 
 
-// ========================================
-// COUNTRY COLLECTION
-// ========================================
+// ==========================================
+// COUNTRIES
+// ==========================================
 
 function renderCountries(memories) {
     const countries = {};
 
     memories.forEach(memory => {
-        const countryName = memory.country;
-
-        if (!countries[countryName]) {
-            countries[countryName] = new Set();
+        if (!countries[memory.country]) {
+            countries[memory.country] = [];
         }
 
-        countries[countryName].add(memory.city);
+        countries[memory.country].push(memory.city);
     });
 
     const countryNames = Object.keys(countries).sort();
 
     if (countryNames.length === 0) {
-        countryList.innerHTML = `
-            <div class="empty-state">
-                Your country collection will appear here.
-            </div>
-        `;
+        countryList.innerHTML =
+            "<p class='empty-state'>Your country collection will grow here.</p>";
         return;
     }
 
-    countryList.innerHTML = countryNames.map(country => `
-        <article class="country-item">
-            <h3>${escapeHTML(country)}</h3>
-            <p>
-                ${countries[country].size}
-                ${countries[country].size === 1 ? "city" : "cities"} explored
-            </p>
-        </article>
-    `).join("");
+    countryList.innerHTML = countryNames.map(country => {
+        const cities = [...new Set(countries[country])].sort();
+
+        return `
+            <div class="country-item">
+                <h3>${escapeHTML(country)}</h3>
+                <p>${cities.map(city => escapeHTML(city)).join(", ")}</p>
+            </div>
+        `;
+    }).join("");
 }
 
 
-// ========================================
-// FAVORITE DESTINATIONS
-// ========================================
+// ==========================================
+// FAVORITES
+// ==========================================
 
 function renderFavorites(memories) {
     const favorites = sortMemories(
@@ -235,129 +484,142 @@ function renderFavorites(memories) {
     );
 
     if (favorites.length === 0) {
-        favoritesGrid.innerHTML = `
-            <div class="empty-state">
-                Your favorite places will appear here.
-                <br>
-                Use the heart button on a travel memory to add one.
-            </div>
-        `;
+        favoritesGrid.innerHTML =
+            "<p class='empty-state'>Your favorite memories will appear here.</p>";
         return;
     }
 
     favoritesGrid.innerHTML = favorites.map(memory => `
-        <article class="favorite-card">
-            <h3>♥ ${escapeHTML(memory.city)}</h3>
-            <p>${escapeHTML(memory.country)}</p>
-            <p>${formatDate(memory.visitDate)}</p>
+        <article class="memory-card favorite-card">
+            <div class="memory-card-content">
+                <h3>${escapeHTML(memory.city)}</h3>
+                <p>${escapeHTML(memory.country)}</p>
+                <p>${escapeHTML(formatDateRange(memory))}</p>
 
-            <button
-                type="button"
-                data-action="favorite"
-                data-id="${escapeHTML(memory.id)}"
-            >
-                Remove from favorites
-            </button>
+                <div class="memory-rating">
+                    ${"★".repeat(Number(memory.rating) || 0)}
+                </div>
+
+                <p>${escapeHTML(memory.notes)}</p>
+
+                <div class="memory-actions">
+                    <button
+                        type="button"
+                        data-action="favorite"
+                        data-id="${escapeHTML(memory.id)}"
+                        aria-label="Remove from favorites"
+                    >
+                        ♥
+                    </button>
+
+                    <button
+                        type="button"
+                        data-action="delete"
+                        data-id="${escapeHTML(memory.id)}"
+                        aria-label="Delete memory"
+                    >
+                        ×
+                    </button>
+                </div>
+            </div>
         </article>
     `).join("");
 }
 
 
-// ========================================
+// ==========================================
 // FEATURED DESTINATION
-// ========================================
+// ==========================================
 
 function renderFeaturedDestination(memories) {
     const latestMemory = sortMemories(memories)[0];
 
     if (!latestMemory) {
-        featuredDestination.querySelector(".featured-location").textContent =
-            "YOUR NEXT MEMORY";
-
-        featuredDestination.querySelector("h3").textContent =
-            "Every place has a story.";
-
-        featuredDestination.querySelector(
-            ".featured-content > p:last-child"
-        ).textContent =
-            "Add your first travel memory and let your collection grow.";
-
+        featuredDestination.innerHTML = `
+            <div class="featured-content">
+                <h2>Your next adventure awaits.</h2>
+                <p>Add your first travel memory to get started.</p>
+            </div>
+        `;
         return;
     }
 
-    featuredDestination.querySelector(".featured-location").textContent =
-        latestMemory.country.toUpperCase();
-
-    featuredDestination.querySelector("h3").textContent =
-        latestMemory.city;
-
-    featuredDestination.querySelector(
-        ".featured-content > p:last-child"
-    ).textContent =
-        latestMemory.notes || `Your visit on ${formatDate(latestMemory.visitDate)}.`;
+    featuredDestination.innerHTML = `
+        <div class="featured-content">
+            <h2>${escapeHTML(latestMemory.city)}</h2>
+            <p>${escapeHTML(latestMemory.country)}</p>
+            <p>Your visit: ${escapeHTML(formatDateRange(latestMemory))}</p>
+        </div>
+    `;
 }
 
 
-// ========================================
+// ==========================================
 // SEARCH
-// ========================================
+// ==========================================
 
 function renderSearchResults() {
-    const allMemories = TravelmoryData.getAll();
+    const memories = TravelmoryData.getAll();
     const searchTerm = searchInput.value.trim().toLowerCase();
 
-    const filteredMemories = allMemories.filter(memory =>
-        memory.city.toLowerCase().includes(searchTerm) ||
-        memory.country.toLowerCase().includes(searchTerm) ||
-        memory.notes.toLowerCase().includes(searchTerm)
-    );
+    if (!searchTerm) {
+        renderRecentMemories(memories);
+        return;
+    }
+
+    const filteredMemories = memories.filter(memory => {
+        return (
+            String(memory.city || "").toLowerCase().includes(searchTerm) ||
+            String(memory.country || "").toLowerCase().includes(searchTerm) ||
+            String(memory.notes || "").toLowerCase().includes(searchTerm)
+        );
+    });
 
     renderRecentMemories(filteredMemories);
 }
 
 
-// ========================================
-// FAVORITE AND DELETE ACTIONS
-// ========================================
+// ==========================================
+// FAVORITE / DELETE ACTIONS
+// ==========================================
 
-document.addEventListener("click", (event) => {
-    const button = event.target.closest("[data-action]");
+document.addEventListener("click", event => {
+    const button = event.target.closest("button[data-action]");
 
     if (!button) return;
 
-    const memoryId = button.dataset.id;
+    const id = button.dataset.id;
     const action = button.dataset.action;
 
     if (action === "favorite") {
         const memory = TravelmoryData.getAll().find(
-            item => item.id === memoryId
+            item => item.id === id
         );
 
-        if (!memory) return;
-
-        TravelmoryData.update(memoryId, {
-            isFavorite: !memory.isFavorite
-        });
-
-        renderDashboard();
+        if (memory) {
+            TravelmoryData.update(id, {
+                isFavorite: !memory.isFavorite
+            });
+        }
     }
 
     if (action === "delete") {
-        const confirmed = window.confirm(
+        const confirmed = confirm(
             "Are you sure you want to delete this memory?"
         );
 
-        if (!confirmed) return;
-
-        TravelmoryData.remove(memoryId);
-        renderDashboard();
+        if (confirmed) {
+            TravelmoryData.remove(id);
+        }
     }
+
+    renderDashboard();
 });
 
 
-// ========================================
+// ==========================================
 // DASHBOARD
-// ========================================
+// ==========================================
 
 function renderDashboard() {
     const memories = TravelmoryData.getAll();
@@ -370,9 +632,12 @@ function renderDashboard() {
 }
 
 
-// Search updates the recent memories as you type
+// ==========================================
+// EVENT LISTENERS & INITIAL LOAD
+// ==========================================
+
 searchInput.addEventListener("input", renderSearchResults);
 
-
-// Initial dashboard render
+renderCalendar();
 renderDashboard();
+updateDateRangeLabel();
