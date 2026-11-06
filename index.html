@@ -1,5 +1,7 @@
+
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -11,13 +13,202 @@
 
 <body>
 
-    <div id="app">
-        <h1>Travelmory</h1>
-        <p>Every journey leaves a memory.</p>
+    <div class="app-container">
+
+        <!-- SIDEBAR -->
+
+        <aside class="sidebar">
+
+            <a href="#" class="logo">travelmory<span>.</span></a>
+
+            <nav class="navigation">
+                <a href="#" class="nav-link active">Dashboard</a>
+                <a href="#" class="nav-link">My Countries</a>
+                <a href="#" class="nav-link">My Memories</a>
+                <a href="#" class="nav-link">Wishlist</a>
+            </nav>
+
+            <div class="sidebar-bottom">
+                <p>Your journeys, your stories.</p>
+            </div>
+
+        </aside>
+
+
+        <!-- MAIN CONTENT -->
+
+        <main class="main-content">
+
+            <!-- HEADER -->
+
+            <header class="topbar">
+
+                <div>
+                    <p class="eyebrow">YOUR PERSONAL TRAVEL JOURNAL</p>
+                    <h1>Welcome back, explorer!</h1>
+                    <p class="subtitle">Every journey leaves a memory.</p>
+                </div>
+
+                <button class="add-button" id="addMemoryButton">
+                    + Add a memory
+                </button>
+
+            </header>
+
+
+            <!-- STATISTICS -->
+
+            <section class="stats">
+
+                <article class="stat-card">
+                    <p>Countries explored</p>
+                    <h2 id="countriesCount">0</h2>
+                </article>
+
+                <article class="stat-card">
+                    <p>Cities discovered</p>
+                    <h2 id="citiesCount">0</h2>
+                </article>
+
+                <article class="stat-card">
+                    <p>Memories collected</p>
+                    <h2 id="memoriesCount">0</h2>
+                </article>
+
+            </section>
+
+
+            <!-- RECENTLY VISITED -->
+
+            <section class="section">
+
+                <div class="section-heading">
+
+                    <div>
+                        <p class="eyebrow">YOUR TRAVEL STORY</p>
+                        <h2>Recently visited</h2>
+                    </div>
+
+                    <a href="#">View all →</a>
+
+                </div>
+
+                <div class="recent-grid" id="recentGrid">
+
+                    <p class="empty-state">
+                        Your travel story starts here. Add your first memory!
+                    </p>
+
+                </div>
+
+            </section>
+
+
+            <!-- MY COUNTRIES -->
+
+            <section class="section countries-section">
+
+                <div class="section-heading">
+
+                    <div>
+                        <p class="eyebrow">YOUR COLLECTION</p>
+                        <h2>My countries</h2>
+                    </div>
+
+                    <a href="#">Explore all →</a>
+
+                </div>
+
+                <div class="country-list" id="countryList">
+
+                    <p class="empty-state">
+                        Your country collection is waiting for its first destination.
+                    </p>
+
+                </div>
+
+            </section>
+
+        </main>
+
     </div>
+
+
+    <!-- ADD MEMORY MODAL -->
+
+    <dialog id="memoryDialog" class="memory-dialog">
+
+        <div class="modal-header">
+
+            <div>
+                <p class="eyebrow">SAVE A NEW EXPERIENCE</p>
+                <h2>Add a memory</h2>
+            </div>
+
+            <button type="button" id="closeDialog" class="close-button">
+                &times;
+            </button>
+
+        </div>
+
+
+        <form id="memoryForm">
+
+            <label for="countryInput">Country</label>
+            <input
+                type="text"
+                id="countryInput"
+                placeholder="e.g. Sweden"
+                required
+            >
+
+            <label for="cityInput">City</label>
+            <input
+                type="text"
+                id="cityInput"
+                placeholder="e.g. Stockholm"
+                required
+            >
+
+            <label for="dateInput">Visit date</label>
+            <input
+                type="date"
+                id="dateInput"
+                required
+            >
+
+            <label for="ratingInput">Your rating</label>
+
+            <select id="ratingInput" required>
+                <option value="5">★★★★★ – Loved it!</option>
+                <option value="4">★★★★☆ – Really enjoyed it</option>
+                <option value="3">★★★☆☆ – It was nice</option>
+                <option value="2">★★☆☆☆ – Not my favourite</option>
+                <option value="1">★☆☆☆☆ – Not for me</option>
+            </select>
+
+            <label for="memoryInput">Your memories</label>
+
+            <textarea
+                id="memoryInput"
+                rows="4"
+                placeholder="What made this place special?"
+            ></textarea>
+
+            <button type="submit" class="add-button save-button">
+                Save memory
+            </button>
+
+        </form>
+
+    </dialog>
+
+
+    <!-- JAVASCRIPT -->
 
     <script src="js/data.js"></script>
     <script src="js/app.js"></script>
 
 </body>
+
 </html>
