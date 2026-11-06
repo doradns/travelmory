@@ -731,11 +731,16 @@ function getUniqueCities(memories) {
 // ==========================================
 
 function renderStatistics(memories) {
-    const countries = new Set(
-        memories.map(memory => memory.country)
+    // Only visited trips count as explored places
+    const visitedTrips = memories.filter(
+        memory => memory.tripStatus === "visited"
     );
 
-    const cities = getUniqueCities(memories);
+    const countries = new Set(
+        visitedTrips.map(memory => memory.country)
+    );
+
+    const cities = getUniqueCities(visitedTrips);
 
     countriesCount.textContent = countries.size;
     citiesCount.textContent = cities.size;
@@ -752,45 +757,58 @@ function renderRecentMemories(memories) {
 
     if (sortedMemories.length === 0) {
         recentGrid.innerHTML =
-            "<p class='empty-state'>Your travel memories will appear here.</p>";
+            "<p class='empty-state'>Your trips will appear here.</p>";
         return;
     }
 
-    recentGrid.innerHTML = sortedMemories.map(memory => `
-        <article class="memory-card">
-            <div class="memory-card-content">
-                <h3>${escapeHTML(memory.city)}</h3>
-                <p>${escapeHTML(memory.country)}</p>
-                <span>${escapeHTML(formatDateRange(memory))}</span>
+    recentGrid.innerHTML = sortedMemories.map(memory => {
+        const statusLabel =
+            memory.tripStatus === "planned" ? "Planned" : "Visited";
 
-                <div class="memory-rating">
-                    ${"★".repeat(Number(memory.rating) || 0)}
+        const ratingHTML = memory.rating
+            ? "★".repeat(Number(memory.rating))
+            : "Not rated yet";
+
+        return `
+            <article class="memory-card">
+                <div class="memory-card-content">
+                    <span class="trip-status ${memory.tripStatus || "visited"}">
+                        ${statusLabel}
+                    </span>
+
+                    <h3>${escapeHTML(memory.city)}</h3>
+                    <p>${escapeHTML(memory.country)}</p>
+                    <span>${escapeHTML(formatDateRange(memory))}</span>
+
+                    <div class="memory-rating">
+                        ${ratingHTML}
+                    </div>
+
+                    <p>${escapeHTML(memory.notes)}</p>
+
+                    <div class="memory-actions">
+                        <button
+                            type="button"
+                            data-action="favorite"
+                            data-id="${escapeHTML(memory.id)}"
+                            aria-label="Toggle favorite"
+                        >
+                            ${memory.isFavorite ? "♥" : "♡"}
+                        </button>
+
+                        <button
+                            type="button"
+                            data-action="delete"
+                            data-id="${escapeHTML(memory.id)}"
+                            aria-label="Delete trip"
+                        >
+                            ×
+                        </button>
+                    </div>
                 </div>
-
-                <p>${escapeHTML(memory.notes)}</p>
-
-                <div class="memory-actions">
-                    <button
-                        type="button"
-                        data-action="favorite"
-                        data-id="${escapeHTML(memory.id)}"
-                        aria-label="Toggle favorite"
-                    >
-                        ${memory.isFavorite ? "♥" : "♡"}
-                    </button>
-
-                    <button
-                        type="button"
-                        data-action="delete"
-                        data-id="${escapeHTML(memory.id)}"
-                        aria-label="Delete memory"
-                    >
-                        ×
-                    </button>
-                </div>
-            </div>
-        </article>
-    `).join("");
+            </article>
+        `;
+    }).join("");
 }
 
 
