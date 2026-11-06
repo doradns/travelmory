@@ -172,8 +172,40 @@
                 <label for="city">City</label>
                 <input type="text" id="city" name="city" required>
 
-                <label for="visitDate">Date visited</label>
-                <input type="date" id="visitDate" name="visitDate" required>
+<label>When did you travel?</label>
+
+<div class="date-range-picker">
+
+    <button
+        type="button"
+        id="dateRangeTrigger"
+        class="date-range-trigger"
+    >
+        <span id="dateRangeLabel">Select travel dates</span>
+        <span>📅</span>
+    </button>
+
+    <div
+        id="dateRangeCalendar"
+        class="date-range-calendar"
+        hidden
+    >
+        <div class="calendar-header">
+            <button type="button" id="prevMonth">‹</button>
+            <button type="button" id="nextMonth">›</button>
+        </div>
+
+        <div id="calendarMonths" class="calendar-months"></div>
+
+        <p id="dateRangeHint">
+            Select your arrival and departure dates.
+        </p>
+    </div>
+
+    <input type="hidden" id="startDate" name="startDate">
+    <input type="hidden" id="endDate" name="endDate">
+
+</div>
 
                 <label for="rating">Your rating</label>
                 <select id="rating" name="rating">
