@@ -45,7 +45,7 @@ memoryForm.addEventListener("submit", (event) => {
         country: document.getElementById("country").value.trim(),
         city: document.getElementById("city").value.trim(),
         visitDate: document.getElementById("visitDate").value,
-        rating: document.getElementById("rating").value,
+        rating: Number(document.getElementById("rating").value),
         notes: document.getElementById("notes").value.trim()
     };
 
