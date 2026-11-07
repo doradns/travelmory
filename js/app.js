@@ -1078,44 +1078,92 @@ if (travelMapElement && typeof maplibregl !== "undefined") {
     // COUNTRY COLORS
     // ==========================================
 
-    travelMap.on("load", () => {
+travelMap.on("load", () => {
 
-        travelMap.addSource("travel-countries", {
-            type: "geojson",
-            data: "https://raw.githubusercontent.com/datasets/geo-countries/main/data/countries.geojson"
-        });
+    travelMap.addSource("travel-countries", {
+        type: "geojson",
+        data: "https://raw.githubusercontent.com/datasets/geo-countries/main/data/countries.geojson"
+    });
 
-        const countryStatuses = getCountryStatuses();
+    const countryStatuses = getCountryStatuses();
 
-        const countryColorExpression = [
-            "match",
-            ["get", "ISO3166-1-Alpha-2"]
-        ];
+    const countryColorExpression = [
+        "match",
+        ["get", "ISO3166-1-Alpha-2"]
+    ];
 
-        Object.entries(countryStatuses).forEach(([code, status]) => {
-            countryColorExpression.push(
-                code,
-                status === "visited" ? "#697b63" : "#dce9f4"
-            );
-        });
+    Object.entries(countryStatuses).forEach(([code, status]) => {
+        countryColorExpression.push(
+            code,
+            status === "visited" ? "#697b63" : "#dce9f4"
+        );
+    });
 
-        countryColorExpression.push("#e8e4d8");
+    countryColorExpression.push("#e8e4d8");
 
-        const firstSymbolLayer = travelMap.getStyle().layers.find(
-            layer => layer.type === "symbol"
+    const firstSymbolLayer = travelMap.getStyle().layers.find(
+        layer => layer.type === "symbol"
+    );
+
+    // Base country colors
+    travelMap.addLayer({
+        id: "travel-country-fill",
+        type: "fill",
+        source: "travel-countries",
+        paint: {
+            "fill-color": countryColorExpression,
+            "fill-opacity": 0.55,
+            "fill-outline-color": "#ffffff"
+        }
+    }, firstSymbolLayer ? firstSymbolLayer.id : undefined);
+
+    // Planned countries
+    const plannedCountries = Object.entries(countryStatuses)
+        .filter(([code, status]) => status === "planned")
+        .map(([code]) => code);
+
+    if (plannedCountries.length > 0) {
+
+        // Create a diagonal hatch pattern
+        const hatchCanvas = document.createElement("canvas");
+        hatchCanvas.width = 16;
+        hatchCanvas.height = 16;
+
+        const context = hatchCanvas.getContext("2d");
+
+        context.strokeStyle = "#8fb6d2";
+        context.lineWidth = 2;
+
+        context.beginPath();
+        context.moveTo(-8, 16);
+        context.lineTo(16, -8);
+        context.moveTo(0, 24);
+        context.lineTo(24, 0);
+        context.stroke();
+
+        travelMap.addImage(
+            "travel-planned-hatch",
+            hatchCanvas,
+            { pixelRatio: 2 }
         );
 
+        // Apply the pattern only to planned countries
         travelMap.addLayer({
-            id: "travel-country-fill",
+            id: "travel-planned-pattern",
             type: "fill",
             source: "travel-countries",
+            filter: [
+                "in",
+                ["get", "ISO3166-1-Alpha-2"],
+                ["literal", plannedCountries]
+            ],
             paint: {
-                "fill-color": countryColorExpression,
-                "fill-opacity": 0.55,
-                "fill-outline-color": "#ffffff"
+                "fill-pattern": "travel-planned-hatch",
+                "fill-opacity": 0.9
             }
         }, firstSymbolLayer ? firstSymbolLayer.id : undefined);
+    }
 
-    });
+});
 
 }
