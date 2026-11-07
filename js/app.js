@@ -651,6 +651,7 @@ memoryForm.addEventListener("submit", (event) => {
 
 const newMemory = {
     country: countryInput.value.trim(),
+    countryCode: selectedCountryCode.toUpperCase(),
     city: cityInput.value.trim(),
     startDate: selectedStartDate,
     endDate: selectedEndDate,
