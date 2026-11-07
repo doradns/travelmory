@@ -1015,3 +1015,32 @@ searchInput.addEventListener("input", renderSearchResults);
 renderCalendar();
 renderDashboard();
 updateDateRangeLabel();
+
+
+// ==========================================
+// TRAVEL MAP - INITIALIZATION
+// ==========================================
+
+const travelMapElement = document.getElementById("travelMap");
+
+if (travelMapElement && typeof L !== "undefined") {
+
+    // Create the world map
+    const travelMap = L.map("travelMap", {
+        center: [20, 0],
+        zoom: 2,
+        minZoom: 2,
+        maxZoom: 6,
+        worldCopyJump: true
+    });
+
+    // Add map tiles
+    L.tileLayer(
+        "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+        {
+            attribution:
+                '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+            noWrap: true
+        }
+    ).addTo(travelMap);
+}
