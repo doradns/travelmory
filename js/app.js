@@ -1160,7 +1160,7 @@ filter: [
     false
 ],
             paint: {
-                "fill-pattern": "travel-planned-hatch",
+                "fill-color": "#8fb6d2",
                 "fill-opacity": 0.9
             }
         }, firstSymbolLayer ? firstSymbolLayer.id : undefined);
