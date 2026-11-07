@@ -917,3 +917,26 @@ section {
         gap: 14px;
     }
 }
+
+/* ==========================================
+   MAP COUNTRY LABELS
+========================================== */
+
+.country-label {
+    background: transparent;
+    border: none;
+    white-space: nowrap;
+}
+
+.country-label span {
+    display: block;
+    color: #303b32;
+    font-size: 11px;
+    font-weight: 600;
+    text-align: center;
+    text-shadow:
+        1px 1px 2px rgba(255, 255, 255, 0.9),
+        -1px -1px 2px rgba(255, 255, 255, 0.9);
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+}
