@@ -1152,11 +1152,13 @@ travelMap.on("load", () => {
             id: "travel-planned-pattern",
             type: "fill",
             source: "travel-countries",
-            filter: [
-                "in",
-                ["get", "ISO3166-1-Alpha-2"],
-                ["literal", plannedCountries]
-            ],
+filter: [
+    "match",
+    ["get", "ISO3166-1-Alpha-2"],
+    ["literal", plannedCountries],
+    true,
+    false
+],
             paint: {
                 "fill-pattern": "travel-planned-hatch",
                 "fill-opacity": 0.9
