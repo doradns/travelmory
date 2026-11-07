@@ -1040,4 +1040,58 @@ if (travelMapElement && typeof maplibregl !== "undefined") {
         new maplibregl.NavigationControl(),
         "top-right"
     );
+
+    // ==========================================
+    // COUNTRY COLORS
+    // ==========================================
+
+    const countryColors = {
+        visited: "#697b63",
+        planned: "#dce9f4",
+        neutral: "#e8e4d8"
+    };
+
+    function getCountryStatuses() {
+        const memories = TravelmoryData.getAll();
+        const statuses = {};
+
+        memories.forEach(memory => {
+
+            let code = memory.countryCode;
+
+            // Fallback for older memories without country codes
+            if (!code) {
+                const countryNames = {
+                    "Sweden": "SWE",
+                    "Denmark": "DNK"
+                };
+
+                code = countryNames[memory.country];
+            }
+
+            if (!code) return;
+
+            code = code.toUpperCase();
+
+            if (!statuses[code]) {
+                statuses[code] = "planned";
+            }
+
+            if (memory.tripStatus === "visited") {
+                statuses[code] = "visited";
+            }
+        });
+
+        return statuses;
+    }
+
+    travelMap.on("load", () => {
+
+        const countryStatuses = getCountryStatuses();
+
+        // Country boundaries will be added in the next step.
+        console.log("Travelmory country statuses:", countryStatuses);
+
+    });
+
 }
