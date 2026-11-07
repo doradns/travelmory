@@ -7,6 +7,12 @@
     <meta name="description" content="Travelmory – Every journey leaves a memory.">
     <title>Travelmory – Every journey leaves a memory</title>
     <link rel="stylesheet" href="css/style.css">
+<!-- Leaflet map library -->
+<link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+/>
+    
 </head>
 
 <body>
@@ -82,6 +88,35 @@
                 </div>
             </section>
 
+<!-- World map -->
+<section class="map-section">
+    <div class="section-heading">
+        <div>
+            <p class="eyebrow">YOUR WORLD, YOUR STORIES</p>
+            <h2>My travel map</h2>
+        </div>
+    </div>
+
+    <div class="map-legend">
+        <span>
+            <i class="legend-dot visited"></i>
+            Visited
+        </span>
+
+        <span>
+            <i class="legend-dot planned"></i>
+            Planned
+        </span>
+
+        <span>
+            <i class="legend-dot not-visited"></i>
+            Not visited
+        </span>
+    </div>
+
+    <div id="travelMap" class="travel-map"></div>
+</section>
+            
             <!-- Featured trip -->
             <section class="featured-section">
                 <div class="section-heading">
@@ -285,6 +320,7 @@
 
     </div>
 
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="js/data.js"></script>
     <script src="js/app.js"></script>
 </body>
