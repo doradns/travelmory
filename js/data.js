@@ -11,6 +11,7 @@ const TravelmoryData = (() => {
             // Keep older memories compatible with the new date range
            return memories.map(memory => ({
     ...memory,
+    countryCode: memory.countryCode || "",
     startDate: memory.startDate || memory.visitDate || "",
     endDate: memory.endDate || memory.visitDate || "",
     tripStatus: memory.tripStatus || "visited",
@@ -37,6 +38,7 @@ console.log("STATUS RECEIVED BY DATA.JS:", memory.tripStatus);
 const newMemory = {
     id: crypto.randomUUID(),
     country: memory.country,
+    countryCode: memory.countryCode || "",
     city: memory.city,
     startDate: memory.startDate,
     endDate: memory.endDate,
