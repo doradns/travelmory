@@ -1042,28 +1042,21 @@ if (travelMapElement && typeof maplibregl !== "undefined") {
     );
 
     // ==========================================
-    // COUNTRY COLORS
+    // COUNTRY STATUS
     // ==========================================
-
-    const countryColors = {
-        visited: "#697b63",
-        planned: "#dce9f4",
-        neutral: "#e8e4d8"
-    };
 
     function getCountryStatuses() {
         const memories = TravelmoryData.getAll();
         const statuses = {};
 
         memories.forEach(memory => {
-
             let code = memory.countryCode;
 
-            // Fallback for older memories without country codes
+            // Fallback for older saved trips
             if (!code) {
                 const countryNames = {
-                    "Sweden": "SWE",
-                    "Denmark": "DNK"
+                    "Sweden": "SE",
+                    "Denmark": "DK"
                 };
 
                 code = countryNames[memory.country];
@@ -1073,24 +1066,55 @@ if (travelMapElement && typeof maplibregl !== "undefined") {
 
             code = code.toUpperCase();
 
-            if (!statuses[code]) {
-                statuses[code] = "planned";
-            }
-
-            if (memory.tripStatus === "visited") {
-                statuses[code] = "visited";
+            if (!statuses[code] || memory.tripStatus === "visited") {
+                statuses[code] = memory.tripStatus || "visited";
             }
         });
 
         return statuses;
     }
 
+    // ==========================================
+    // COUNTRY COLORS
+    // ==========================================
+
     travelMap.on("load", () => {
+
+        travelMap.addSource("travel-countries", {
+            type: "geojson",
+            data: "https://raw.githubusercontent.com/datasets/geo-countries/main/data/countries.geojson"
+        });
 
         const countryStatuses = getCountryStatuses();
 
-        // Country boundaries will be added in the next step.
-        console.log("Travelmory country statuses:", countryStatuses);
+        const countryColorExpression = [
+            "match",
+            ["get", "ISO3166-1-Alpha-2"]
+        ];
+
+        Object.entries(countryStatuses).forEach(([code, status]) => {
+            countryColorExpression.push(
+                code,
+                status === "visited" ? "#697b63" : "#dce9f4"
+            );
+        });
+
+        countryColorExpression.push("#e8e4d8");
+
+        const firstSymbolLayer = travelMap.getStyle().layers.find(
+            layer => layer.type === "symbol"
+        );
+
+        travelMap.addLayer({
+            id: "travel-country-fill",
+            type: "fill",
+            source: "travel-countries",
+            paint: {
+                "fill-color": countryColorExpression,
+                "fill-opacity": 0.55,
+                "fill-outline-color": "#ffffff"
+            }
+        }, firstSymbolLayer ? firstSymbolLayer.id : undefined);
 
     });
 
