@@ -1019,32 +1019,25 @@ updateDateRangeLabel();
 
 
 // ==========================================
-// TRAVEL MAP - INITIALIZATION
+// TRAVEL MAP - MAPLIBRE INITIALIZATION
 // ==========================================
 
 const travelMapElement = document.getElementById("travelMap");
 
-if (travelMapElement && typeof L !== "undefined") {
+if (travelMapElement && typeof maplibregl !== "undefined") {
 
-    // Create the world map
-    const travelMap = L.map("travelMap", {
-        center: [20, 0],
-        zoom: 2,
-        minZoom: 2,
+    const travelMap = new maplibregl.Map({
+        container: "travelMap",
+        style: "https://tiles.openfreemap.org/styles/positron",
+        center: [0, 20],
+        zoom: 1.5,
+        minZoom: 1.5,
         maxZoom: 6,
-        worldCopyJump: true
+        attributionControl: true
     });
 
-// Add map tiles
-L.tileLayer(
-    "https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}",
-    {
-        attribution:
-            "Tiles &copy; Esri, HERE, Garmin, USGS, Intermap, " +
-            "INCREMENT P, NRCan, Esri Japan, METI, Esri China (Hong Kong), " +
-            "NGCC, and the GIS User Community",
-        noWrap: true,
-        maxZoom: 18
-    }
-).addTo(travelMap);
+    travelMap.addControl(
+        new maplibregl.NavigationControl(),
+        "top-right"
+    );
 }
