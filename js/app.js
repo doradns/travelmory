@@ -1044,4 +1044,50 @@ L.tileLayer(
         noWrap: true
     }
 ).addTo(travelMap);
+
+// ==========================================
+// ENGLISH COUNTRY LABELS
+// ==========================================
+
+fetch("https://raw.githubusercontent.com/datasets/geo-countries/main/data/countries.geojson")
+    .then(response => {
+        if (!response.ok) {
+            throw new Error("Could not load country data");
+        }
+        return response.json();
+    })
+    .then(data => {
+        const countryLabels = L.layerGroup();
+
+        L.geoJSON(data).eachLayer(countryLayer => {
+            const countryName = countryLayer.feature.properties.name;
+            const center = countryLayer.getBounds().getCenter();
+
+            const label = L.marker(center, {
+                interactive: false,
+                icon: L.divIcon({
+                    className: "country-label",
+                    html: `<span>${countryName}</span>`,
+                    iconSize: null
+                })
+            });
+
+            label.addTo(countryLabels);
+        });
+
+        function updateCountryLabels() {
+            if (travelMap.getZoom() >= 4) {
+                countryLabels.addTo(travelMap);
+            } else {
+                travelMap.removeLayer(countryLabels);
+            }
+        }
+
+        travelMap.on("zoomend", updateCountryLabels);
+        updateCountryLabels();
+    })
+    .catch(error => {
+        console.error("Country labels could not be loaded:", error);
+    });
+
 }
