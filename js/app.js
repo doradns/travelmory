@@ -1037,10 +1037,10 @@ if (travelMapElement && typeof L !== "undefined") {
 
     // Add map tiles
 L.tileLayer(
-    "https://{s}.tile.openstreetmap.fr/osmfr/{z}/{x}/{y}.png",
+    "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
     {
         attribution:
-            '&copy; OpenStreetMap contributors',
+            '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
         noWrap: true
     }
 ).addTo(travelMap);
