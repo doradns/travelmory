@@ -1035,13 +1035,16 @@ if (travelMapElement && typeof L !== "undefined") {
         worldCopyJump: true
     });
 
-    // Add map tiles
+// Add map tiles
 L.tileLayer(
-    "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+    "https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}",
     {
         attribution:
-            '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-        noWrap: true
+            "Tiles &copy; Esri, HERE, Garmin, USGS, Intermap, " +
+            "INCREMENT P, NRCan, Esri Japan, METI, Esri China (Hong Kong), " +
+            "NGCC, and the GIS User Community",
+        noWrap: true,
+        maxZoom: 18
     }
 ).addTo(travelMap);
 }
